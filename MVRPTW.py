@@ -3,8 +3,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 from gurobipy import*
 
+''' we can also check different vehicle capacities in a loop for optimal routes'''
+
 Q = 62   #vehicle capacity
-no_of_vehicles = 2
+
+no_of_vehicles = 2   ## free to modify
+
 df = pd.read_csv("VRPTW.txt",' ')
 Y = list(df["Y"])
 X = list(df["X"])
@@ -38,41 +42,43 @@ for i in range (len(X)):
         x[i,j] = m.addVar(vtype = GRB.BINARY, name = "x%d,%d" %(i,j))
         dist_matrix[i,j] = np.sqrt((X[i]-X[j])**2 + (Y[i]-Y[j])**2)
         if i==j:
-            dist_matrix[i,j] = 1000
+            dist_matrix[i,j] = float('inf')            ## big 'M'
         continue
 m.update()
 
 #variable_2: y[j] = cumulative demand covered
 for j in range(len(coordinates)):
-    y[j] = m.addVar(vtype=GRB.INTEGER, name = "y%d" %(j))
-    z[j] = m.addVar(vtype=GRB.INTEGER, name="z%d" % (j))
+    y[j] = m.addVar(vtype=GRB.INTEGER, name = "y%d" %(j))            ## cumulative demand satisfied variable
+    z[j] = m.addVar(vtype=GRB.INTEGER, name="z%d" % (j))             ## cumulative time variable
 m.update()
 
-#constraint_1: sum(x[i,j]) = 1, for i = 1,2,...,32
+#constraint_1: sum(x[i,j]) = 1, for i = 1,2,...,32        ## vehicles leaving each customer node
 for i in range (len(coordinates)-1):
     m.addConstr(quicksum(x[(i+1,j)] for j in range (len(coordinates))) == 1)
 m.update()
 
-#constraint_2: sum(x[i,j] =1 for j = 1,2,.....,32)
+#constraint_2: sum(x[i,j] =1 for j = 1,2,.....,32)        ## vehicles arriving to each customer node
 for j in range (len(coordinates)-1):
     m.addConstr(quicksum(x[(i,j+1)] for i in range (len(coordinates))) == 1)
 m.update()
 
-#constraint_3: sum(x[0,j]) = 5
+#constraint_3: sum(x[0,j]) = 5            ## vehicles leaving depot
 m.addConstr(quicksum(x[(0,j)] for j in range (len(coordinates))) == no_of_vehicles)
 m.update()
 
-#constraint_4: sum(x[i,0]) = 5
+#constraint_4: sum(x[i,0]) = 5            ## vehicles arriving to depot
 m.addConstr(quicksum(x[(i,0)] for i in range (len(coordinates))) == no_of_vehicles)
 m.update()
 
-# #constraint_5: capacity of vehicle and also eliminating subtour
-# for j in range(len(coordinates)-1):
-#     m.addConstr(y[j+1]<= Q)
-#     m.addConstr(y[j+1]>=Demand[j+1])
-#     for i in range(len(coordinates)-1):
-#             m.addConstr(y[j+1] >= y[i+1] + Demand[j+1]*(x[i+1,j+1]) - Q*(1-(x[i+1,j+1])))
-# m.update()
+''' Either of constraint_5 or constrain_6 can eliminate subtours independently'''
+
+#constraint_5: capacity of vehicle and also eliminating subtour
+for j in range(len(coordinates)-1):
+    m.addConstr(y[j+1]<= Q)
+    m.addConstr(y[j+1]>=Demand[j+1])
+    for i in range(len(coordinates)-1):
+            m.addConstr(y[j+1] >= y[i+1] + Demand[j+1]*(x[i+1,j+1]) - Q*(1-(x[i+1,j+1])))
+m.update()
 
 # constraint_6: time windows
 for i in range(len(coordinates)-1):
