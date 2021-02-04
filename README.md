@@ -1,7 +1,6 @@
 # CVRPTW stands for Capacitated Vehicle Routing Problem with Time Windows
 This code is written in Python3-Gurobi API interface.
-This is a 'capacitated' multiple vehicle routing problem.
-This code also incorporates the 'time windows' constraint.
+In CVRPTW, a fleet of vehicles with a limited capacity leave depot to serve a set of customers and finally come back to the depot. Every customers have a preferred time window of visit. A vehicle can only visit the customers within their respective time window.
 
 #### VRP is a NP-hard problem and hence the computational time increases polynomially even for a small increment in the problem size. 
 
