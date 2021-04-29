@@ -4,13 +4,19 @@ from matplotlib import pyplot as plt
 from gurobipy import *
 
 ''' we can also check different vehicle capacities for optimal routes'''
-Q = 70  # vehicle capacity
-no_of_vehicles = 2  # free to modify
+Q = 200  # vehicle capacity
+no_of_vehicles = 3  # free to modify
+no_of_customers = 15
+df = pd.read_csv(r'C:\Users\Administrator\github\VRP\MVRP_400N.txt', sep = " ")
+df = df.iloc[0:no_of_customers+1]
 
-df = pd.read_excel('VRP.xlsx')
 Y, X = list(df["Y"]), list(df["X"])
 coordinates = np.column_stack((X, Y))
-et, lt, st = list(df["Et"]), list(df["Lt"]), list(df["St"])
+
+'''
+et, lt, st = list(df["Et"]), list(df["Lt"]), list(df["St"])  # needed for time windows
+'''
+
 Demand = list(df["Demand"])
 n = len(coordinates)
 depot, customers = coordinates[0, :], coordinates[1:, :]
@@ -65,15 +71,18 @@ for j in range(n - 1):
         m.addConstr(y[j + 1] >= y[i + 1] + Demand[j + 1] * (x[i + 1, j + 1]) - Q * (1 - (x[i + 1, j + 1])))
 m.update()
 
+
 '''constraint_6: time-windows and also eliminating sub-tours'''
+'''
 for i in range(n - 1):
-    '''assumption: service starts at 9:00 AM, 9 == 0 minutes, each hour after 9 is 60 minutes plus previous hours'''
+    # assumption: service starts at 9:00 AM, 9 == 0 minutes, each hour after 9 is 60 minutes plus previous hours
     m.addConstr(z[i + 1] >= (et[i + 1] - 9) * 60)  # service should start after the earliest service start time
     m.addConstr(z[i + 1] <= (lt[i + 1] - 9) * 60)  # service can't be started after the latest service start time
     for j in range(n - 1):
-        '''taking the linear distance from one node to other as travelling time in minutes between those nodes'''
+        # taking the linear distance from one node to other as travelling time in minutes between those nodes
         m.addConstr(z[i + 1] >= z[j + 1] + (st[j + 1] + dist_matrix[j + 1, i + 1]/100) * x[j + 1, i + 1] - M*(1-x[j+1, i+1]))
 m.update()
+'''
 
 '''objective function'''
 m.setObjective(quicksum(quicksum(x[(i, j)]*dist_matrix[(i, j)] for j in range(n)) for i in range(n)),GRB.MINIMIZE)
@@ -94,3 +103,15 @@ print('\nObjective is:', m.objVal)
 print('\nDecision variable X (binary decision of travelling from one node to another):\n', X.astype('int32'))
 print('\nDecision variable z:(service start time of every customers in minutes)\n', Z.astype('int32')[1:])
 print('\nDecision variable y (cumulative demand collected at every customer node):\n', Y.astype('int32')[1:])
+
+
+def plot_tours(solution_x):
+    tours = [[i, j] for i in range(solution_x.shape[0]) for j in range(solution_x.shape[1]) if solution_x[i, j] ==1]
+    for t, tour in enumerate(tours):
+        plt.plot(df["X"][tour], df["Y"][tour], color = "black", linewidth=0.5)
+    plt.scatter(df["X"][1:], df["Y"][1:], marker = 'x', color = 'g', label = "customers")
+    plt.scatter(df["X"][0], df["Y"][0], marker = "o", color = 'b', label = "depot")
+    plt.xlabel("X"), plt.ylabel("Y"), plt.title("Tours"), plt.legend(loc = 4)
+    plt.show()
+
+plot_tours(X)
