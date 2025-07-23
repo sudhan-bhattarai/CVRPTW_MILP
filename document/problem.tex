@@ -1,0 +1,109 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amsfonts}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{setspace}
+\doublespacing
+
+\title{Vehicle Routing Problem as a Mixed Integer Linear Program}
+\author{Sudhan Bhattarai}
+\date{}
+
+\begin{document}
+\maketitle
+\section{Introduction} \label{sec:introduction}
+The Vehicle Routing Problem (VRP) is a well-known optimization problem in supply chain and logistics management. A standard approach to model this problem is through a Mixed-Integer Linear Program (MILP). This repository presents a simple example of formulating and solving the VRP using MILP techniques.
+
+\subsection{Problem Overview} \label{sec:overview}
+We consider a distribution center that operates a fleet of vehicles, all identical in size and capacity. A set of customers, each located at a distinct geographic location, has known commodity demands. Each customer specifies a preferred \emph{time window} during which deliveries must occur. That is, a vehicle must arrive within the specified window to make a delivery.
+
+Upon arrival, each delivery requires a fixed amount of service time. For instance, if a customer specifies a delivery window of 2:00–3:00 PM, the vehicle must arrive no earlier than 2:00 PM and no later than 3:00 PM.
+
+The objective is to determine vehicle routes that minimize the total travel distance while ensuring that:
+\begin{itemize}
+    \item All customer demands are met,
+    \item Each vehicle operates within its capacity, and
+    \item All deliveries occur within the respective time windows.
+\end{itemize}
+
+\section{Problem Formulation}
+
+To formulate the VRP described in Subsection~\ref{sec:overview}, we begin by defining the relevant notation in Table~\ref{tab:notation}.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+$V$ & Number of vehicles available at the depot \\
+$I$ & Number of customers, with the customer set defined as $\{1, \ldots, I\}$ and indexed by $i$ \\
+$(x_i, y_i)$ & Geographical coordinates of customer $i \in \{1, \ldots, I\}$ \\
+$(x_0, y_0)$ & Geographical coordinates of the depot, denoted as node $i = 0$ \\
+$d_{i,j}$ & Distance between nodes $i$ and $j$, for all $i, j \in \{0, 1, \ldots, I\},\ i \neq j$ \\
+$q$ & Capacity of each vehicle (identical for all $v = 1, \ldots, V$) \\
+$e_i$ & Earliest allowable service start time for customer $i \in \{1, \ldots, I\}$ \\
+$l_i$ & Latest allowable service start time for customer $i \in \{1, \ldots, I\}$ \\
+$\delta$ & Fixed service duration at each customer location \\
+$M$ & A sufficiently large constant used for time-based constraints \\
+\bottomrule
+\end{tabular}
+\caption{Model Notation}
+\label{tab:notation}
+\end{table}
+
+\subsection{Decision Variables}
+
+Based on the notation in Table~\ref{tab:notation}, we define the decision variables of the MILP model in Table~\ref{tab:decision_vars}.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+$x_{i,j} \in \{0,1\}$ & 1 if a vehicle travels from $i = 0, 1, \cdots, I$ to $j = 0, 1, \cdots, I: j \neq i$, 0 o/w \\
+$y_i \geq 0$ & Load of the vehicle just before servicing customer $i = 1, \cdots, I$ \\
+$s_i \geq 0$ & Start time of service at customer $i = 1, \cdots, I$ \\
+\bottomrule
+\end{tabular}
+\caption{Decision Variables}
+\label{tab:decision_vars}
+\end{table}
+
+This formulation assumes a \emph{homogeneous fleet} in which all vehicles have the same capacity and characteristics. In the case of a \emph{heterogeneous fleet}, the load variable $y_i$ would need to be vehicle-specific (e.g., $y_{i,v}$) to capture varying capacities and routing choices per vehicle. The binary decision variables can also be modified accordingly.
+
+\subsection{MILP Model}
+
+The MILP formulation for the VRP is given by equations in Model~\eqref{milp_model}.
+
+\begin{subequations}
+\label{milp_model}
+\begin{align}
+    \min \quad & \sum_{i = 0}^I \sum_{\substack{j = 0 \\ j \neq i}}^I d_{i, j} x_{i, j} \label{obj} \\
+    \text{s.t.} \quad
+    & \sum_{i = 1}^I x_{0, i} \leq V, \label{c1} \\
+    & \sum_{i = 1}^I x_{i, 0} = \sum_{i = 1}^I x_{0, i}, \label{c2} \\
+    & \sum_{\substack{i = 0 \\ i \neq j}}^I x_{i, j} = 1, \quad \forall j \in \{1, \ldots, I\}, \label{c3} \\
+    & \sum_{\substack{j = 0 \\ j \neq i}}^I x_{i, j} = 1, \quad \forall i \in \{1, \ldots, I\}, \label{c4} \\
+    & s_j \geq s_i + t_{i, j} x_{i, j} + \delta - M (1 - x_{i, j}), \quad \forall i \neq j, \label{c5} \\
+    & y_j \geq y_i + d_i x_{i, j} - M (1 - x_{i, j}), \quad \forall i \neq j, \label{c6} \\
+    & y_i \leq q, \quad \forall i \in \{0, 1, \ldots, I\}, \label{c7} \\
+    & e_i \leq s_i \leq l_i, \quad \forall i \in \{1, \ldots, I\}, \label{c8} \\
+    & y_i \geq 0,\ s_i \geq 0, \quad \forall i \in \{1, \ldots, I\}, \label{c9} \\
+    & x_{i, j} \in \{0, 1\}, \quad \forall i, j \in \{0, \ldots, I\},\ i \neq j. \label{c10}
+\end{align}
+\end{subequations}
+
+The equations in the MILP model~\eqref{milp_model} serve the following purposes:
+
+\begin{itemize}
+    \item \textbf{The objective function~\eqref{obj}} minimizes the total travel distance of all vehicles.
+    \item \textbf{Constraint~\eqref{c1}}: Limits the number of vehicles that can leave the depot to at most $V$, the total fleet size.
+    \item \textbf{Constraint~\eqref{c2}}: Ensures that every vehicle that departs from the depot eventually returns to it, maintaining route continuity.
+    \item \textbf{Constraint~\eqref{c3}}: Guarantees that each customer is visited exactly once by one vehicle.
+    \item \textbf{Constraint~\eqref{c4}}: Ensures that after servicing a customer, the vehicle continues its route to the next location (except for the last node on a route which is the depot itself).
+    \item \textbf{Constraint~\eqref{c5}}: Enforces correct sequencing of service times. If a vehicle travels directly from customer $i$ to $j$, then service at $j$ must start after finishing service at $i$ and traveling to $j$. The big-$M$ term deactivates the constraint when arc $(i,j)$ is not used.
+    \item \textbf{Constraint~\eqref{c6}}: Tracks cumulative demand served along the route. If a vehicle moves from $i$ to $j$, the load at $j$ must account for the demand already served at $i$.
+    \item \textbf{Constraint~\eqref{c7}}: Ensures that the cumulative demand on any vehicle does not exceed its capacity $q$.
+    \item \textbf{Constraint~\eqref{c8}}: Enforces that service at each customer starts within their preferred time window, between $e_i$ and $l_i$.
+    \item \textbf{Constraint~\eqref{c9}}: Declares the non-negativity of the continuous decision variables $y_i$ and $s_i$.
+    \item \textbf{Constraint~\eqref{c10}}: Defines the binary nature of routing decisions: $x_{i,j}$ equals 1 if a vehicle travels from $i$ to $j$, and 0 otherwise.
+\end{itemize}
+\end{document}

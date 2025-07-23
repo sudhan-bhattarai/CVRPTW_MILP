@@ -1,0 +1,7 @@
+contextily==1.6.2
+geopandas==1.0.1
+geopy==2.4.1
+gurobipy==11.0.3
+matplotlib==3.10.3
+numpy==2.3.1
+Shapely==2.1.1

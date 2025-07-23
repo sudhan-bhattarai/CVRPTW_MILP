@@ -1,0 +1,74 @@
+[
+  {
+    "parameter": "V",
+    "value": 4,
+    "description": "Number of vehicles"
+  },
+  {
+    "parameter": "v_cap",
+    "value": 4,
+    "description": "Capacity of vehicles"
+  },
+  {
+    "parameter": "I",
+    "value": 15,
+    "description": "Number of customers"
+  },
+  {
+    "parameter": "r",
+    "value": 10,
+    "description": "Number of miles around depot (radius) of network"
+  },
+  {
+    "parameter": "loc_depot",
+    "value": [40.943, -75.501],
+    "description": "Location (lat, long) of depot"
+  },
+  {
+    "parameter": "delta",
+    "value": 0.25,
+    "description": "Duration of service (in hours) for each customer"
+  },
+  {
+    "parameter": "alpha",
+    "value": 1,
+    "description": "Factor to convert distance to travel time"
+  },
+  {
+    "parameter": "day_start",
+    "value": 9,
+    "description": "Clock time representing the start time of a business day."
+  },
+  {
+    "parameter": "day_end",
+    "value": 17,
+    "description": "Clock time representing the end time of a business day."
+  },
+  {
+    "parameter": "demand_per_customer",
+    "value": 1,
+    "description": "Number of units of commodities to drop off at each customer."
+  },
+  {
+    "parameter": "max_time_window_length",
+    "value": 4,
+    "description": "Maximum number of hours that a time window may last."
+  },
+  {
+    "parameter": "travel_time_factor",
+    "value": 2,
+    "description": "Factor by which travel time relates to (distance / radius)"
+  },
+  {
+    "parameter": "time_windows",
+    "value": 0,
+    "choices": [0, 1],
+    "description": "Activate time-windows constraints (1) or not (0)."
+  },
+  {
+    "parameter": "capacity",
+    "value": 1,
+    "choices": [0, 1],
+    "description": "Activate vehicle capacity constraints (1) or not (0)."
+  }
+]
