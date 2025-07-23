@@ -53,7 +53,7 @@ This runs a CVRPTW where:
 
 ## Notes to Ensure Feasibility
 
-- The total fleet capacity, calculated as **$V \times \text{v_cap}$** (number of vehicles multiplied by vehicle capacity), must be sufficient to meet the total customer demand, which is **$I \times \text{demand_per_customer}$** (number of customers multiplied by demand per customer).
+- The total fleet capacity, calculated as **V * v\_cap** (number of vehicles multiplied by vehicle capacity), must be sufficient to meet the total customer demand, which is **I * demand\_per\_customer** (number of customers multiplied by demand per customer).
   
 - The number of vehicles (**$V$**) must be adequate to service all customers within the specified time window, which is controlled by the `max_time_window_length` parameter. Insufficient vehicles may result in infeasible routes.
 
